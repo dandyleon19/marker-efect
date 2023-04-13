@@ -5,8 +5,11 @@ import android.location.Geocoder
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
+import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -20,107 +23,62 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 
 
-class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener,
-    GoogleMap.OnCameraIdleListener, GoogleMap.OnCameraMoveStartedListener,
-    GoogleMap.OnCameraMoveListener, GoogleMap.OnCameraMoveCanceledListener {
+class MainActivity : AppCompatActivity(), OnMapReadyCallback,
+    GoogleMap.OnCameraIdleListener, GoogleMap.OnCameraMoveStartedListener {
 
     private lateinit var map: GoogleMap
-    private lateinit var lastLocation: Location
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var mapPin: ImageView
     private lateinit var addressText: TextView
-
-    companion object {
-        private const val LOCATION_PERMISSION_REQUEST_CODE = 1
-    }
+    private lateinit var relativePin: RelativeLayout
+    private lateinit var relativePinShadow: RelativeLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         addressText = findViewById(R.id.addressText)
-        mapPin = findViewById(R.id.mapPin)
+        relativePin = findViewById(R.id.relativePin)
+        relativePinShadow = findViewById(R.id.relativePinShadow)
 
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
-
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
+
         map.uiSettings.isZoomControlsEnabled = true
 
-        map.setOnCameraIdleListener(this);
         map.setOnCameraMoveStartedListener(this);
-        map.setOnCameraMoveListener(this);
-        map.setOnCameraMoveCanceledListener(this)
+        map.setOnCameraIdleListener(this);
 
         setUpMap()
     }
 
     private fun setUpMap() {
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
-                LOCATION_PERMISSION_REQUEST_CODE
-            )
-            return
-        }
-
-        map.isMyLocationEnabled = true
-
-        fusedLocationClient.lastLocation.addOnSuccessListener(this) { location ->
-            if (location != null) {
-                lastLocation = location
-                val currentLatLng = LatLng(location.latitude, location.longitude)
-                getAddress(currentLatLng)
-                map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 18f))
-            }
-        }
+        val currentLatLng = LatLng(-12.119956, -77.0312958)
+        getAddress(currentLatLng)
+        map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 18f))
     }
 
-    override fun onMarkerClick(marker: Marker): Boolean = false
-
     private fun getAddress(latLng: LatLng) {
-
-        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.TIRAMISU) {
-            Geocoder(this).getFromLocation(latLng.latitude, latLng.longitude, 1) { addressList ->
-                if (addressList.size > 0) {
-                    addressText.text = addressList[0].getAddressLine(0)
-                }
-            }
-        } else {
-            val addresses = Geocoder(this).getFromLocation(latLng.latitude, latLng.longitude, 1)
-
-            if (addresses!!.size > 0) {
-                addressText.text = addresses[0].getAddressLine(0)
-            }
-        }
+        addressText.text = latLng.toString()
     }
 
     override fun onCameraMoveStarted(p0: Int) {
-        println("start")
-    }
-
-    override fun onCameraMove() {
-        println("moving")
+        relativePinShadow.visibility = View.VISIBLE
+        val params = relativePin.layoutParams as ViewGroup.MarginLayoutParams
+        params.setMargins(0,0,0,180)
+        relativePin.layoutParams = params
     }
 
     override fun onCameraIdle() {
-        println("end")
+        relativePinShadow.visibility = View.GONE
+        val params = relativePin.layoutParams as ViewGroup.MarginLayoutParams
+        params.setMargins(0,0,0,100)
+        relativePin.layoutParams = params
+
         val center = map.cameraPosition.target
         val currentLatLng = LatLng(center.latitude, center.longitude)
-        map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 18f))
         getAddress(currentLatLng)
-    }
-
-    override fun onCameraMoveCanceled() {
-        println("cancel")
     }
 }

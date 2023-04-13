@@ -20,16 +20,33 @@
             android:layout_height="wrap_content" />
 
         <RelativeLayout
+            android:id="@+id/relativePin"
+            android:layout_marginBottom ="35dp"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
             <ImageView
                 android:id="@+id/mapPin"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:paddingBottom="35dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:layout_centerInParent="true"
                 android:src="@drawable/ic_pin_red" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/relativePinShadow"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/mapPinX"
+                android:text="x"
+                android:layout_centerInParent="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
         </RelativeLayout>
     </RelativeLayout>
 
